@@ -1,0 +1,103 @@
+try {
+ // Build starts here. We put this in a try/Catch block so that we can
+ // perform post-build actions (such as Slack notifications).
+   node("linux") {
+     stage('Clean Workspace') {
+       deleteDir()
+     }
+     stage('Code Checkout') {
+     try{
+     checkout([$class: 'GitSCM',
+     branches: scm.branches,
+     gitTool: 'Default',
+     userRemoteConfigs: scm.userRemoteConfigs
+     ])
+     }
+     catch (error) {
+       currentBuild.result = 'Code checkout failure'
+       notify(currentBuild.result,"danger")
+       throw error
+     }
+    }
+     stage('Docker Build'){
+       try{
+       sh 'docker build -t idp_image -f DockerfilePR .'
+       }catch(error){
+       currentBuild.result = 'Docker build failure'
+       notify(currentBuild.result,"danger")
+       throw error
+       }
+     }
+     stage('Docker Run'){
+       try{
+         try{
+             sh 'docker container stop idp_container'
+             sh 'docker rm idp_container'
+         }catch(error){
+             // handled the exception if container is not available
+         }
+         sh 'docker run --privileged --network host -t -d --name idp_container idp_image'
+       }
+       catch(error){
+         currentBuild.result = 'Docker run failure'
+         notify(currentBuild.result,"danger")
+         throw error
+       }
+     }
+    //  stage('Lint') {
+    //  try {
+    //    sh 'docker exec idp_container pylint worker integrationtest'
+    //   } catch (error) {
+    //     currentBuild.result = 'Docker lint failure'
+    //     notify(currentBuild.result,"danger")
+    //     throw error
+    //   }
+    //  }
+    stage('Test') {
+       try {
+       sh 'docker exec idp_container bash -c "cd Test/Auth0MonotypeFont/ && python3.7 -m py.test  "'
+
+      } catch (error) {
+        currentBuild.result = 'Docker test failure'
+        notify(currentBuild.result,"danger")
+        throw error
+      }
+     }
+    //  stage('Sonarqube Scanning') {
+    //    try {
+    //    sh 'docker exec idp_container coverage run worker/testsuite.py'
+    //    sh 'docker exec idp_container coverage xml  --include=worker/src/*.py --omit=worker/src/*/test_*.py,worker/src/*/__init__.py'
+    //    sh 'docker exec idp_container bash deleteroute.sh'
+    //    sh 'docker exec idp_container sonar-scanner -Dsonar.exclusions=worker/__init__.py,worker/src/__init__.py,worker/src/*/test_*.py,worker/src/*/__init__.py,worker/src/*/*/__init__.py,worker/src/*/*/test_*.py,worker/testsuite.py,worker/management/commands/*.py'
+    //   } catch (error) {
+    //     currentBuild.result = 'Docker test failure'
+    //     notify(currentBuild.result,"danger")
+    //     throw error
+    //   }
+    //  }
+     // stage("Security") {
+       // try {
+       //  sh 'docker exec idp_container safety check -r requirements.txt'
+       // } catch (error) {
+       //    currentBuild.result = 'Docker security failure'
+       //    notify(currentBuild.result,"danger")
+       //    throw error
+       // }
+     // }
+     stage("Remove Docker Container"){
+       try{
+         sh 'docker rm -f idp_container'
+       }catch(error){
+          currentBuild.result = 'Failure removing container'
+          notify(currentBuild.result,"danger")
+          throw error
+       }
+     }
+   currentBuild.result = "SUCCESS"
+ }
+}
+//Postbuild error If occurs
+catch (error) {
+ echo "Caught: ${error}"
+ throw error
+}

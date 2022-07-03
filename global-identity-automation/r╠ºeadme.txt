@@ -1,0 +1,56 @@
+1Step wise step procedure to configure IDP Automation project:
+
+pre -requisite:
+	1.Install python 3.7
+	2.Install pycharm
+	3.Install paycheck
+	4.Install jproperties
+	5.Install pytest-rerunsfailure plugin
+	6.Install noopmy
+	7.install pytest-xlrd plugin
+	8.Install OS
+
+After installing all of the above pre-requisites please follow the instructions
+
+1.Clone project from git using below link
+
+Branch name: Ankit-08-01
+https://github.com/Monotype/global-identity-automation/tree/Ankit-08-01
+
+
+2.Install requirements.txt file from the project using below link.
+
+pip3 install -r requirement.txt
+
+Now Project should be ready to run
+
+3. If you want to all the test cases in the local, use command
+
+	Py.test
+Or
+ Pytest
+
+4.If you want to run  test cases in parallel, use command
+
+py.test -n 2
+		Or
+Pytest -n 2
+
+5. If you want to execute test case on local machine and see result on report portal, use
+
+First connect your local machine with VPN and the use below command
+
+Py.test -m gui_test --reportportal -rp -n 3 --rplaunch IDPLaunch --reruns 4
+
+6.After completion on test cases execution  to check report(status) use link
+
+http://172.28.15.36:8080/ui/#identity_provider/launches/all
+
+
+Basic Python Commands:
+
+
+
+
+
+

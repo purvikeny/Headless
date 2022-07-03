@@ -1,0 +1,5 @@
+applicationNameMonotypeFontCom = 'monotypefonts.com'
+applicationNameMyfont = 'MyFonts'
+applicationNameMonotypeFont = 'Monotype Last_Queries'
+tenet = 'test'
+environment= 'AUTH0_TEST_MYFSHOPIFY'
